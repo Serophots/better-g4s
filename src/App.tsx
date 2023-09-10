@@ -3,11 +3,8 @@ import AuthTokenInput from "./components/AuthTokenInput";
 import {getCurrentWeekIndex} from "./dateUtils";
 import useStickyState from "./hooks/useStickyState";
 import Timetable from "./components/Timetable";
-import {RawLesson} from "./data/types/Raw/RawLesson";
 import {TreeView} from "./structures/TreeView";
-import {RawClass} from "./data/types/Raw/RawClass";
 import {aggregateRawData, fetchRawData, RawData} from "./data/aggregator";
-import {RawHomework} from "./data/types/Raw/RawHomework";
 
 const days = [
     "Jupiter",
@@ -22,8 +19,8 @@ const days = [
 
 const App = () => {
 
-    const [authToken, setAuthToken] = useStickyState("Bearer aERQHvV26m5KT5FRWI_n_CmetYVJw_6VkHBK3RpAFLg", "authToken");
-    const [studentId, setStudentId] = useStickyState("883106", "studentId");
+    const [authToken, setAuthToken] = useStickyState("", "authToken");
+    const [studentId, setStudentId] = useStickyState("", "studentId");
 
     const [weekIndex, setWeekIndex] = useState(getCurrentWeekIndex());
 
