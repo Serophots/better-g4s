@@ -6,7 +6,9 @@ interface Homework {
 	set_date: Date,
 	subject_name: string,
 	subject_code: string,
-	subject_id: string
+	subject_id: string,
+
+	is_completed: boolean,
 
 }
 export type {Homework}

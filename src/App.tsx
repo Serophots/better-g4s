@@ -4,7 +4,8 @@ import {getCurrentWeekIndex} from "./dateUtils";
 import useStickyState from "./hooks/useStickyState";
 import Timetable from "./components/Timetable";
 import {TreeView} from "./structures/TreeView";
-import {aggregateRawData, fetchRawData, RawData} from "./data/aggregator";
+import {aggregateRawData, fetchRawData, RawData, SavedData} from "./data/aggregator";
+import {Homework} from "./data/types/Homework";
 
 const days = [
     "Jupiter",
@@ -30,8 +31,12 @@ const App = () => {
         subjects: [],
         timetable: [],
     });
-    const [savedData, setSavedData] = useStickyState(null, "savedData");
+    const [savedData, setSavedData] = useStickyState<SavedData>({
+        override_homework: {}
+    }, "savedData");
     const data = aggregateRawData(rawData, savedData);
+
+    console.log("Saved data", savedData)
 
 
     const refetch = async () => {
@@ -43,6 +48,35 @@ const App = () => {
     useEffect(() => {
         refetch()
     }, [])
+
+
+    const onHomeworkToggled = (subject_id: string, homework_id: string, new_state: boolean) => {
+        console.log("homework toggled", subject_id, homework_id, new_state)
+
+        // const homework: Homework = data.homework[subject_id][homework_id]
+
+        // console.log("Original override_homework", savedData.override_homework[subject_id][homework_id])
+        // console.log("Original api homework", data.homework[subject_id][homework_id])
+
+        setSavedData({
+            ...savedData,
+            override_homework: {
+                ...savedData.override_homework,
+                [subject_id]: {
+                    ...savedData.override_homework[subject_id],
+                    [homework_id]: {
+                        ...(
+                            savedData.override_homework[subject_id] ? (
+                                savedData.override_homework[subject_id][homework_id] || data.homework[subject_id][homework_id]
+                            ) : (data.homework[subject_id][homework_id])
+                        ),
+                        is_completed: new_state
+                    }
+                }
+            }
+        })
+
+    }
 
 
     return (
@@ -65,7 +99,7 @@ const App = () => {
                 {/* Timetable */}
                 <div className={"flex flex-row justify-center"}>
                     <div>
-                        <Timetable weekIndex={weekIndex} timetable={data.timetable}/>
+                        <Timetable onHomeworkToggled={onHomeworkToggled} weekIndex={weekIndex} timetable={data.timetable}/>
                     </div>
                 </div>
 
@@ -82,20 +116,20 @@ const App = () => {
                             </div>
                         </div>
 
-                        <TreeView data={{
-                            "Overdue Homework": [
-                                "scary"
-                            ],
-                            "Physics": [
-                                "A","B","C"
-                            ],
-                            "Maths": [
-                                "A","B","C"
-                            ],
-                            "Further Maths": [
-                                "A","B","C"
-                            ]
-                        }}/>
+                        {/*<TreeView data={{*/}
+                        {/*    "Overdue Homework": [*/}
+                        {/*        "scary"*/}
+                        {/*    ],*/}
+                        {/*    "Physics": [*/}
+                        {/*        "A","B","C"*/}
+                        {/*    ],*/}
+                        {/*    "Maths": [*/}
+                        {/*        "A","B","C"*/}
+                        {/*    ],*/}
+                        {/*    "Further Maths": [*/}
+                        {/*        "A","B","C"*/}
+                        {/*    ]*/}
+                        {/*}}/>*/}
 
                     </div>
 
@@ -112,17 +146,17 @@ const App = () => {
                         </div>
 
 
-                        <TreeView data={{
-                            "Physics": [
-                                "A","B","C"
-                            ],
-                            "Maths": [
-                                "A","B","C"
-                            ],
-                            "Further Maths": [
-                                "A","B","C"
-                            ]
-                        }}/>
+                        {/*<TreeView data={{*/}
+                        {/*    "Physics": [*/}
+                        {/*        "A","B","C"*/}
+                        {/*    ],*/}
+                        {/*    "Maths": [*/}
+                        {/*        "A","B","C"*/}
+                        {/*    ],*/}
+                        {/*    "Further Maths": [*/}
+                        {/*        "A","B","C"*/}
+                        {/*    ]*/}
+                        {/*}}/>*/}
 
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-import {TextInput} from "../structures/TextInput";
+import {TextField} from "../structures/TextField";
 import React, {useState} from "react";
 import internal from "stream";
 
@@ -9,7 +9,7 @@ const AuthTokenInput = ({authToken,  setAuthToken, studentId, setStudentId}: {au
     return (
         <div>
 
-            <TextInput placeholder={internalAuthToken} onChange={(e) => {
+            <TextField placeholder={internalAuthToken} onChange={(e) => {
                 e.preventDefault()
 
                 setInternalAuthToken(e.target.value)
@@ -18,17 +18,16 @@ const AuthTokenInput = ({authToken,  setAuthToken, studentId, setStudentId}: {au
 
                 e.target.disabled = true;
                 e.target.value = "";
-                e.target.placeholder = "Fetching..."
+                e.target.placeholder = internalAuthToken
 
                 console.log("Saving auth token", internalAuthToken)
                 await setAuthToken(internalAuthToken);
 
 
                 e.target.disabled = false;
-                e.target.placeholder = internalAuthToken
             }}/>
 
-            <TextInput placeholder={internalStudentId} onChange={(e) => {
+            <TextField placeholder={internalStudentId} onChange={(e) => {
                 e.preventDefault()
 
                 setInternalStudentId(e.target.value)
@@ -37,13 +36,12 @@ const AuthTokenInput = ({authToken,  setAuthToken, studentId, setStudentId}: {au
 
                 e.target.disabled = true;
                 e.target.value = "";
-                e.target.placeholder = "Fetching..."
+                e.target.placeholder = internalStudentId
 
                 console.log("Saving auth token", internalStudentId)
                 await setStudentId(internalStudentId);
 
                 e.target.disabled = false;
-                e.target.placeholder = internalStudentId
             }}/>
 
         </div>

@@ -1,6 +1,7 @@
 import React from "react";
-import {RawLesson} from "../data/types/Raw/RawLesson";
 import {Lesson} from "../data/types/Lesson";
+import {Homework} from "../data/types/Homework";
+import {Checkbox} from "../structures/Checkbox";
 
 const chunkArray = (array: any[], chunker: number) => {
 	let ret = []
@@ -12,72 +13,78 @@ const chunkArray = (array: any[], chunker: number) => {
 	return ret
 }
 
-// const TimetableLesson = ({subject, class_code, checklist}: {subject: string | null, class_code: string | null, checklist: string[]}) => {
-const TimetableLesson = ({lesson}: {lesson: Lesson}) => {
+const TimetableCheckbox = ({text, checked, onClick}: {text: string, checked: boolean, onClick: (e: React.MouseEvent<HTMLDivElement>) => void}) => (
+	<div className={"cursor-pointer px-1"} onClick={onClick}>
+		<Checkbox checked={checked} readOnly={true}/>
+		<span className={"px-1"}>{text}</span>
+	</div>
+)
+
+const TimetableLesson = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => (<>
+	{
+		lesson.homeworks_due.length > 0 && (<>
+			<div className={"font-semibold text-base"}>Homework Due</div>
+
+			{
+				lesson.homeworks_due.map((homework) => <TimetableCheckbox text={homework.title} checked={homework.is_completed} onClick={e => {
+					onHomeworkToggled(homework.subject_id, homework.id, !homework.is_completed);
+				}}/>)
+			}
+
+		</>)
+	}
+
+	{
+		lesson.homeworks_set.length > 0 && (<>
+			<div className={"font-semibold text-base"}>Homework Set</div>
+
+			{
+				lesson.homeworks_set.map((homework) => <TimetableCheckbox text={homework.title} checked={homework.is_completed} onClick={e => {
+					onHomeworkToggled(homework.subject_id, homework.id, !homework.is_completed);
+				}}/>)
+			}
+		</>)
+	}
+
+	{
+		lesson.lesson_tasks.length > 0 && (<>
+			{
+				(lesson.homeworks_set.length > 0 || lesson.homeworks_due.length > 0) && (
+					<div className={"font-semibold text-base"}>Tasks</div>
+				)
+			}
+
+			{
+				lesson.lesson_tasks.map((homework) => <TimetableCheckbox text={homework.title} checked={homework.is_completed} onClick={e => {
+					onHomeworkToggled(homework.subject_id, homework.id, !homework.is_completed);
+				}}/>)
+			}
+		</>)
+	}
+
+</>)
+
+const TimetableFree = ({lesson}: {lesson: Lesson}) => (<></>)
+
+
+const TimetablePeriod = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => {
 	return (
 		<td className={"border-black border p-1.5 align-top"}>
 			<div className={"flex justify-between"}>
 				<div className={"text-lg"}><b>{lesson.name}</b>{lesson.code ? (` - ${lesson.code}`) : ("")}</div>
-				<button>S</button>
+				<button className={"w-6 h-6 m-1 border"}>S</button>
 			</div>
-
 
 			<div className={"px-1"}>
 				{
-					lesson.homeworks_due.length > 0 && (<>
-						<div className={"font-semibold text-base"}>Homework Due</div>
-
-						{
-							lesson.homeworks_due.map(homework => (
-								<div className={"px-1"}>
-									<input type={"checkbox"} value={homework.id}/>
-									<span className={"px-1"}>{homework.title}</span>
-								</div>
-							))
-						}
-
-					</>)
+					(lesson.subject_id == "0") ? (<TimetableFree key={lesson.date.toString()+"free"} lesson={lesson}/>) : (<TimetableLesson key={lesson.date.toString()+lesson.id} lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>)
 				}
-
-				{
-					lesson.homeworks_set.length > 0 && (<>
-						<div className={"font-semibold text-base"}>Homework Set</div>
-
-						{
-							lesson.homeworks_set.map(homework => (
-								<div className={"px-1"}>
-									<input type={"checkbox"} value={homework.id}/>
-									<span className={"px-1"}>{homework.title}</span>
-								</div>
-							))
-						}
-
-					</>)
-				}
-
-
-				{
-					(lesson.homeworks_set.length > 0 || lesson.homeworks_due.length > 0) && (
-						<div className={"font-semibold text-base"}>Lesson</div>
-					)
-				}
-
-				<div className={"px-1"}>
-					<input type={"checkbox"} value={"notetaking"}/>
-					<span className={"px-1"}>Notetaking</span>
-				</div>
-				<div className={"px-1"}>
-					<input type={"checkbox"} value={"preparation"}/>
-					<span className={"px-1"}>Preparation</span>
-				</div>
 			</div>
-
-
 		</td>
 	)
 }
 
-const Timetable = ({weekIndex, timetable}: {weekIndex: number, timetable: Lesson[]}) => {
+const Timetable = ({weekIndex, timetable, onHomeworkToggled}: {weekIndex: number, timetable: Lesson[], onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => {
 	return (<>
 		<div className={"flex px-1 py-2"}>
 			<h3 className={"font-semibold text-xl"}>Timetable</h3>
@@ -88,31 +95,23 @@ const Timetable = ({weekIndex, timetable}: {weekIndex: number, timetable: Lesson
 		</div>
 
 		<table className={"border-black border-2 text-sm"}>
-		<tbody>
-		{/*TODO: Subject colour coding to stand out*/}
+			<tbody>
+			{/*TODO: Subject colour coding to stand out*/}
 
-		{
-			chunkArray(timetable, 6).map((dayOfLessons: Lesson[]) => (
-				<tr>
-					{
-						dayOfLessons.map(lesson => {
-							if(lesson.name === "Tutor Time") return <></>
-							if(lesson.name !== null) {
-								return <TimetableLesson lesson={lesson}/>
-								// return <TimetableLesson subject={lesson.name} class_code={lesson.code} checklist={[
-								// 	"Homework Due",
-								// 	"Homework Set",
-								// 	"Note taking"
-								// ]}/>
-							}
-							return <TimetableLesson lesson={lesson}/>
-						})
-					}
-				</tr>
-			))
-		}
-		</tbody>
-	</table>
+			{
+				chunkArray(timetable, 6).map((dayOfLessons: Lesson[], i) => (
+					<tr key={i}>
+						{
+							dayOfLessons.map((lesson, i) => {
+								if(lesson.name === "Tutor Time") return <></>
+								return <TimetablePeriod key={i.toString() + lesson.date.toString()} lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>
+							})
+						}
+					</tr>
+				))
+			}
+			</tbody>
+		</table>
 	</>)
 }
 
