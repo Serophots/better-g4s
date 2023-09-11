@@ -5,17 +5,6 @@ import useStickyState from "./hooks/useStickyState";
 import Timetable from "./components/Timetable";
 import {aggregateRawData, fetchRawData, RawData, SavedData} from "./data/aggregator";
 
-const days = [
-    "Jupiter",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday"
-]
-
 const App = () => {
 
     const [authToken, setAuthToken] = useStickyState("", "authToken");
@@ -42,13 +31,6 @@ const App = () => {
 
 
     const onHomeworkToggled = (subject_id: string, task_id: string, new_state: boolean) => {
-        console.log("task toggled", subject_id, task_id, new_state)
-
-        // const homework: Homework = data.homework[subject_id][homework_id]
-
-        // console.log("Original override_homework", savedData.override_homework[subject_id][homework_id])
-        // console.log("Original api homework", data.homework[subject_id][homework_id])
-
         setSavedData({
             ...savedData,
             tasks: {
@@ -57,30 +39,12 @@ const App = () => {
                     ...savedData.tasks[subject_id],
                     [task_id]: {
                         ...data.tasks[subject_id][task_id] || {},
-                        ...savedData.tasks[subject_id][task_id] || {},
+                        ...(savedData.tasks[subject_id] ? (savedData.tasks[subject_id][task_id] || {}) : {}),
                         is_completed: new_state
                     }
                 }
             }
         });
-
-        // setSavedData({
-        //     ...savedData,
-        //     override_homework: {
-        //         ...savedData.override_homework,
-        //         [subject_id]: {
-        //             ...savedData.override_homework[subject_id],
-        //             [homework_id]: {
-        //                 ...(
-        //                     savedData.override_homework[subject_id] ? (
-        //                         savedData.override_homework[subject_id][homework_id] || data.homework[subject_id][homework_id]
-        //                     ) : (data.homework[subject_id][homework_id])
-        //                 ),
-        //                 is_completed: new_state
-        //             }
-        //         }
-        //     }
-        // })
     }
 
 
@@ -102,10 +66,8 @@ const App = () => {
                 </div>
 
                 {/* Timetable */}
-                <div className={"flex flex-row justify-center"}>
-                    <div>
-                        <Timetable onHomeworkToggled={onHomeworkToggled} weekIndex={weekIndex} timetable={data.timetable}/>
-                    </div>
+                <div className={""}>
+                    <Timetable onHomeworkToggled={onHomeworkToggled} weekIndex={weekIndex} timetable={data.timetable}/>
                 </div>
 
                 <div className={"flex flex-row justify-around"}>

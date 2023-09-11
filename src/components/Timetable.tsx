@@ -44,12 +44,12 @@ const TimetableLesson = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomewor
 
 			<div className={"flex-grow flex justify-between"}>
 
-				<span className={""}>
-					<b>{lesson.name}</b>
+				<span className={"font-bold"}>
+					{lesson.name}
 				</span>
 
 				<span className={"font-mono"}>
-						{` `}{lesson.code}
+						{lesson.code}
 				</span>
 
 				<span className={"font-mono"}>
@@ -78,19 +78,17 @@ const TimetableLesson = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomewor
 
 const TimetableFree = () => {
 	return<div className={"flex justify-between"}>
-		<div className={"text-lg"}>Free Period</div>
+		{/*<div className={"text-lg"}>Free Period</div>*/}
 	</div>
 }
 
 const TimetablePeriod = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => {
 	return (
-		<td className={"w-16 border-black border p-1.5 align-top"}>
-
+		<div className={"border-black border p-1.5 align-top"}>
 			{
 				lesson.subject_id == "0" ? (<TimetableFree/>) : (<TimetableLesson lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>)
 			}
-
-		</td>
+		</div>
 	)
 }
 
@@ -99,11 +97,11 @@ const TimetableDayIndiactor = ({weekday_index}: {weekday_index: number}) => {
 	const short_weekday = short_weekdays[weekday_index]
 
 	return (
-		<td className={"border-black border p-1.5 align-top"}>
+		<div className={"border-black border p-1.5 align-top"}>
 			<div className={"flex justify-between"}>
 				<div className={"text-sm font-mono"}><b>{short_weekday}</b></div>
 			</div>
-		</td>
+		</div>
 	)
 }
 
@@ -113,18 +111,15 @@ const Timetable = ({weekIndex, timetable, onHomeworkToggled}: {weekIndex: number
 	return (<>
 		<div className={"flex px-1 py-2"}>
 			<h3 className={"font-semibold text-xl"}>Timetable</h3>
-			<span className={"text-xl flex-grow text-center"}>Monday {dates.start.getDate()}th - Friday {dates.end.getDate()}th</span>
+				<span className={"text-xl flex-grow text-center"}>Monday {dates.start.getDate()}th - Friday {dates.end.getDate()}th</span>
 			<div>
 				{weekIndex}
 			</div>
 		</div>
 
-		<table className={"border-black border-2 text-sm"}>
-			<tbody>
-			{/*TODO: Subject colour coding to stand out*/}
-
+		<div className={"grid grid-cols-[0fr_2fr_2fr_2fr_2fr_2fr] grid-rows-[0.65fr_0.65fr_0.65fr_0.65fr_0.65fr] border-black border"}>
 			{
-				(Object.keys(timetable) as unknown as Array<keyof typeof timetable>).map(weekday_index => <tr>
+				(Object.keys(timetable) as unknown as Array<keyof typeof timetable>).map(weekday_index => <>
 					{
 						timetable[weekday_index].map(lesson => {
 							if(lesson.name === "Tutor Time") {
@@ -134,10 +129,9 @@ const Timetable = ({weekIndex, timetable, onHomeworkToggled}: {weekIndex: number
 							}
 						})
 					}
-				</tr>)
+				</>)
 			}
-			</tbody>
-		</table>
+		</div>
 	</>)
 }
 
