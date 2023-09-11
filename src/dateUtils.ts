@@ -10,7 +10,7 @@ const getWeekDates = (weekNumber: number) => {
     const endDate = new Date(date);
 
     startDate.setDate(startDate.getDate() - startDate.getDay() + 1);
-    endDate.setDate(endDate.getDate() - endDate.getDay() + 7);
+    endDate.setDate(endDate.getDate() - endDate.getDay() + 5);
 
     return {
         start: startDate,

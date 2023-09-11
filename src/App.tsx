@@ -3,9 +3,7 @@ import AuthTokenInput from "./components/AuthTokenInput";
 import {getCurrentWeekIndex} from "./dateUtils";
 import useStickyState from "./hooks/useStickyState";
 import Timetable from "./components/Timetable";
-import {TreeView} from "./structures/TreeView";
 import {aggregateRawData, fetchRawData, RawData, SavedData} from "./data/aggregator";
-import {Homework} from "./data/types/Homework";
 
 const days = [
     "Jupiter",
@@ -23,26 +21,19 @@ const App = () => {
     const [authToken, setAuthToken] = useStickyState("", "authToken");
     const [studentId, setStudentId] = useStickyState("", "studentId");
 
-    const [weekIndex, setWeekIndex] = useState(getCurrentWeekIndex());
-
+    const [weekIndex, setWeekIndex] = useState<number>(getCurrentWeekIndex());
 
     const [rawData, setRawData] = useState<RawData>({
         homework: [],
         subjects: [],
         timetable: [],
     });
-    const [savedData, setSavedData] = useStickyState<SavedData>({
-        override_homework: {}
-    }, "savedData");
+    const [savedData, setSavedData] = useStickyState<SavedData>({ tasks: {} }, "savedData");
     const data = aggregateRawData(rawData, savedData);
-
-    console.log("Saved data", savedData)
-
 
     const refetch = async () => {
         const rawData = await fetchRawData(authToken, studentId, weekIndex)
         setRawData(rawData);
-        console.log("rawData", rawData)
     };
 
     useEffect(() => {
@@ -50,8 +41,8 @@ const App = () => {
     }, [])
 
 
-    const onHomeworkToggled = (subject_id: string, homework_id: string, new_state: boolean) => {
-        console.log("homework toggled", subject_id, homework_id, new_state)
+    const onHomeworkToggled = (subject_id: string, task_id: string, new_state: boolean) => {
+        console.log("task toggled", subject_id, task_id, new_state)
 
         // const homework: Homework = data.homework[subject_id][homework_id]
 
@@ -60,22 +51,36 @@ const App = () => {
 
         setSavedData({
             ...savedData,
-            override_homework: {
-                ...savedData.override_homework,
+            tasks: {
+                ...savedData.tasks,
                 [subject_id]: {
-                    ...savedData.override_homework[subject_id],
-                    [homework_id]: {
-                        ...(
-                            savedData.override_homework[subject_id] ? (
-                                savedData.override_homework[subject_id][homework_id] || data.homework[subject_id][homework_id]
-                            ) : (data.homework[subject_id][homework_id])
-                        ),
+                    ...savedData.tasks[subject_id],
+                    [task_id]: {
+                        ...data.tasks[subject_id][task_id] || {},
+                        ...savedData.tasks[subject_id][task_id] || {},
                         is_completed: new_state
                     }
                 }
             }
-        })
+        });
 
+        // setSavedData({
+        //     ...savedData,
+        //     override_homework: {
+        //         ...savedData.override_homework,
+        //         [subject_id]: {
+        //             ...savedData.override_homework[subject_id],
+        //             [homework_id]: {
+        //                 ...(
+        //                     savedData.override_homework[subject_id] ? (
+        //                         savedData.override_homework[subject_id][homework_id] || data.homework[subject_id][homework_id]
+        //                     ) : (data.homework[subject_id][homework_id])
+        //                 ),
+        //                 is_completed: new_state
+        //             }
+        //         }
+        //     }
+        // })
     }
 
 

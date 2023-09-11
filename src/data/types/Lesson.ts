@@ -1,16 +1,16 @@
-import {Homework} from "./Homework";
-import {Todo} from "./Todo";
+import {LessonTask, Task} from "./Task";
 
-interface Lesson {
+type Lesson = {
 	id: string,
 	name: string,
 	code: string,
 	date: Date,
 	subject_id: string,
 
-	lesson_tasks: Homework[],
-	homeworks_set: Homework[],
-	homeworks_due: Homework[],
-	todo: Todo[], //Free periods
+	teacher_name: string,
+
+	room: string,
+
+	tasks: LessonTask[]
 }
 export type {Lesson}

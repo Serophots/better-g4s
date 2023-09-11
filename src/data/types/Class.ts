@@ -1,10 +1,10 @@
-import {Homework} from "./Homework";
+import {Task} from "./Task";
 
-interface Class {
+type Class = {
 	name: string,
 	code: string,
 	id: string,
 
-	homeworks: Homework[]
+	tasks: Task[]
 }
 export type {Class}

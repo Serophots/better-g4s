@@ -1,17 +1,27 @@
 import React from "react";
 import {Lesson} from "../data/types/Lesson";
-import {Homework} from "../data/types/Homework";
 import {Checkbox} from "../structures/Checkbox";
+import {AggregateDataTimetable} from "../data/aggregator";
+import {LessonTask} from "../data/types/Task";
+import {getWeekDates} from "../dateUtils";
+import {start} from "repl";
 
-const chunkArray = (array: any[], chunker: number) => {
-	let ret = []
-
-	for(let i = 0; i < array.length; i += chunker) {
-		ret.push(array.slice(i, i + chunker))
-	}
-
-	return ret
-}
+const short_weekdays = [
+	"",
+	"Mon",
+	"Tue",
+	"Wed",
+	"Thu",
+	"Fri"
+];
+const full_weekdays = [
+	"",
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday"
+]
 
 const TimetableCheckbox = ({text, checked, onClick}: {text: string, checked: boolean, onClick: (e: React.MouseEvent<HTMLDivElement>) => void}) => (
 	<div className={"cursor-pointer px-1"} onClick={onClick}>
@@ -20,75 +30,90 @@ const TimetableCheckbox = ({text, checked, onClick}: {text: string, checked: boo
 	</div>
 )
 
-const TimetableLesson = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => (<>
-	{
-		lesson.homeworks_due.length > 0 && (<>
-			<div className={"font-semibold text-base"}>Homework Due</div>
+const TimetableLesson = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomeworkToggled: (subject_id: string, task_id: string, new_state: boolean) => void}) => {
 
+	const categorised_tasks: { [category: string]: LessonTask[] } = {};
+
+	lesson.tasks.forEach(task => {
+		if(!categorised_tasks[task.category]) categorised_tasks[task.category] = []
+		categorised_tasks[task.category].push(task)
+	})
+
+	return <>
+		<div className={"flex justify-between"}>
+
+			<div className={"flex-grow flex justify-between"}>
+
+				<span className={""}>
+					<b>{lesson.name}</b>
+				</span>
+
+				<span className={"font-mono"}>
+						{` `}{lesson.code}
+				</span>
+
+				<span className={"font-mono"}>
+					{lesson.room}
+				</span>
+
+			</div>
+			{/*<button className={"w-6 h-6 m-1 border"}>S</button>*/}
+		</div>
+
+		<div className={"px-1"}>
 			{
-				lesson.homeworks_due.map((homework) => <TimetableCheckbox text={homework.title} checked={homework.is_completed} onClick={e => {
-					onHomeworkToggled(homework.subject_id, homework.id, !homework.is_completed);
-				}}/>)
-			}
-
-		</>)
-	}
-
-	{
-		lesson.homeworks_set.length > 0 && (<>
-			<div className={"font-semibold text-base"}>Homework Set</div>
-
-			{
-				lesson.homeworks_set.map((homework) => <TimetableCheckbox text={homework.title} checked={homework.is_completed} onClick={e => {
-					onHomeworkToggled(homework.subject_id, homework.id, !homework.is_completed);
-				}}/>)
-			}
-		</>)
-	}
-
-	{
-		lesson.lesson_tasks.length > 0 && (<>
-			{
-				(lesson.homeworks_set.length > 0 || lesson.homeworks_due.length > 0) && (
-					<div className={"font-semibold text-base"}>Tasks</div>
+				Object.keys(categorised_tasks).map(category => <>
+						<div className={"font-semibold text-base"}>{category}</div>
+						{
+							categorised_tasks[category].map(task => <TimetableCheckbox text={task.title} checked={task.is_completed} onClick={e => {
+								onHomeworkToggled(task.subject_id, task.id, !task.is_completed);
+							}}/>)
+						}
+					</>
 				)
 			}
+		</div>
+	</>
+}
 
-			{
-				lesson.lesson_tasks.map((homework) => <TimetableCheckbox text={homework.title} checked={homework.is_completed} onClick={e => {
-					onHomeworkToggled(homework.subject_id, homework.id, !homework.is_completed);
-				}}/>)
-			}
-		</>)
-	}
-
-</>)
-
-const TimetableFree = ({lesson}: {lesson: Lesson}) => (<></>)
-
+const TimetableFree = () => {
+	return<div className={"flex justify-between"}>
+		<div className={"text-lg"}>Free Period</div>
+	</div>
+}
 
 const TimetablePeriod = ({lesson, onHomeworkToggled}: {lesson: Lesson, onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => {
 	return (
+		<td className={"w-16 border-black border p-1.5 align-top"}>
+
+			{
+				lesson.subject_id == "0" ? (<TimetableFree/>) : (<TimetableLesson lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>)
+			}
+
+		</td>
+	)
+}
+
+const TimetableDayIndiactor = ({weekday_index}: {weekday_index: number}) => {
+
+	const short_weekday = short_weekdays[weekday_index]
+
+	return (
 		<td className={"border-black border p-1.5 align-top"}>
 			<div className={"flex justify-between"}>
-				<div className={"text-lg"}><b>{lesson.name}</b>{lesson.code ? (` - ${lesson.code}`) : ("")}</div>
-				<button className={"w-6 h-6 m-1 border"}>S</button>
-			</div>
-
-			<div className={"px-1"}>
-				{
-					(lesson.subject_id == "0") ? (<TimetableFree key={lesson.date.toString()+"free"} lesson={lesson}/>) : (<TimetableLesson key={lesson.date.toString()+lesson.id} lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>)
-				}
+				<div className={"text-sm font-mono"}><b>{short_weekday}</b></div>
 			</div>
 		</td>
 	)
 }
 
-const Timetable = ({weekIndex, timetable, onHomeworkToggled}: {weekIndex: number, timetable: Lesson[], onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => {
+const Timetable = ({weekIndex, timetable, onHomeworkToggled}: {weekIndex: number, timetable: AggregateDataTimetable, onHomeworkToggled: (subject_id: string, homework_id: string, new_state: boolean) => void}) => {
+	const dates = getWeekDates(weekIndex);
+
 	return (<>
 		<div className={"flex px-1 py-2"}>
 			<h3 className={"font-semibold text-xl"}>Timetable</h3>
-			<span className={"text-xl flex-grow text-center"}>Monday 10th - Friday 15th</span>
+			<span className={"text-xl flex-grow text-center"}>Monday {dates.start.getDate()}th - Friday {dates.end.getDate()}th</span>
 			<div>
 				{weekIndex}
 			</div>
@@ -99,16 +124,17 @@ const Timetable = ({weekIndex, timetable, onHomeworkToggled}: {weekIndex: number
 			{/*TODO: Subject colour coding to stand out*/}
 
 			{
-				chunkArray(timetable, 6).map((dayOfLessons: Lesson[], i) => (
-					<tr key={i}>
-						{
-							dayOfLessons.map((lesson, i) => {
-								if(lesson.name === "Tutor Time") return <></>
-								return <TimetablePeriod key={i.toString() + lesson.date.toString()} lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>
-							})
-						}
-					</tr>
-				))
+				(Object.keys(timetable) as unknown as Array<keyof typeof timetable>).map(weekday_index => <tr>
+					{
+						timetable[weekday_index].map(lesson => {
+							if(lesson.name === "Tutor Time") {
+								return <TimetableDayIndiactor weekday_index={weekday_index}/>
+							}else{
+								return <TimetablePeriod lesson={lesson} onHomeworkToggled={onHomeworkToggled}/>
+							}
+						})
+					}
+				</tr>)
 			}
 			</tbody>
 		</table>
